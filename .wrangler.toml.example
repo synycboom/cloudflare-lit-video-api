@@ -1,0 +1,18 @@
+name = "cloudflare-lit-video-api"
+type = "webpack"
+account_id = "<your_account_id>"
+workers_dev = true
+route = ""
+zone_id = ""
+compatibility_date = "2021-12-12"
+kv_namespaces = [
+  { binding = "KV", preview_id = "<kv_namespace_preview_id>", id = "<kv_namespace_id>" },
+]
+
+vars = { MAX_VIDEOS = 5, ACCOUNT_ID = "<your_account_id>", API_TOKEN = "<api_token_with_stream_permission>", ALLOWED_ORIGIN = "<frontend_origin>" }
+
+[env.alpha]
+vars = { MAX_VIDEOS = 5, ACCOUNT_ID = "<your_account_id>", API_TOKEN = "<api_token_with_stream_permission>", ALLOWED_ORIGIN = "<frontend_origin>" }
+kv_namespaces = [
+  { binding = "KV", preview_id = "<kv_namespace_preview_id_for_alpha>", id = "<kv_namespace_id_for_alpha>" },
+]
