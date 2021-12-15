@@ -9,15 +9,24 @@ const UPLOAD_TIMEOUT_IN_MINUTES = 5;
 const UPLOAD_MAX_DURATION = 3600;
 const VIDEO_KEY = 'videos';
 
-function getCorsHeader() {
+const getCorsHeader = () => {
   return {
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
   };
 }
 
-function userVideoCountKey(wallet) {
+const userVideoCountKey = (wallet) => {
   return `users:${wallet}:videos`;
+}
+
+const getVideoCounter = async (wallet) => {
+  return parseInt(await KV.get(userVideoCountKey(wallet))) || 0;
+}
+
+const increaseVideoCounter = async (wallet) => {
+  const counter = await getVideoCounter(wallet);
+  await KV.put(userVideoCountKey(wallet), counter+1);
 }
 
 const router = Router();
@@ -48,8 +57,8 @@ router.get('/kv/videos', async () => {
 
 router.post('/kv/videos', isAuthenticated, async (request) => {
   try {
+    const count = await getVideoCounter(request.wallet);
     const content = await request.json();
-    const count = parseInt(await KV.get(userVideoCountKey(request.wallet)));
     if (count > MAX_VIDEOS) {
       return new Response(JSON.stringify({
         error: "You have reach your upload limit.",
@@ -69,7 +78,7 @@ router.post('/kv/videos', isAuthenticated, async (request) => {
     videos.push(content);
 
     await KV.put(VIDEO_KEY, JSON.stringify(videos));
-    await KV.put(userVideoCountKey(content.wallet), count+1);
+    await increaseVideoCounter(request.wallet);
   } catch (error) {
     return new Response(JSON.stringify({
       error: error.message,
@@ -132,7 +141,7 @@ router.get('/videos/:id', isAuthenticated, async ({ params }) => {
 });
 
 router.get('/upload/link', isAuthenticated, async (request) => {
-  const count = parseInt(await KV.get(userVideoCountKey(request.wallet)));
+  const count = await getVideoCounter(request.wallet);
   if (count > MAX_VIDEOS) {
     return new Response(JSON.stringify({
       error: "You have reach your upload limit.",
